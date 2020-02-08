@@ -1,4 +1,4 @@
-# event-store-go
+# event-store-go [![Build Status](https://circleci.com/gh/im-tollu/event-store-go.svg?style=svg)](https://app.circleci.com/github/im-tollu/event-store-go/pipelines)
 Event store for learning, demo and prototyping purposes
 
 ## Motivation
