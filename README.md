@@ -1,4 +1,4 @@
-# event-store
+# event-store-go
 Event store for learning, demo and prototyping purposes
 
 ## Motivation
