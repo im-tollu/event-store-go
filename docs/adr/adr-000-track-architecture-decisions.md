@@ -4,7 +4,8 @@
 
 We well track architecurally significant decisions in a separate text files that are stored
 in the same repository with source code. Desicion files are stored under 
-`${PROJECT_ROOT}/docs/adr/` and named according to the format: 
+`${PROJECT_ROOT}/docs/adr/` and named according to the following format:
+ 
 ```adr-001-pick-mq-technology.md```
 
 ## Context
