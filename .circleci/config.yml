@@ -31,12 +31,14 @@ jobs:
           paths:
             - "/go/pkg/mod"
 
-      - store_artifacts: # upload test summary for display in Artifacts
-          path: /tmp/test-results
+      # upload test summary for display in Artifacts
+      - store_artifacts:
+          path: $TEST_RESULTS
           destination: raw-test-output
 
-      - store_test_results: # upload test results for display in Test Summary
-          path: /tmp/test-results
+      # upload test results for display in Test Summary
+      - store_test_results:
+          path: $TEST_RESULTS
 
 workflows:
   version: 2
