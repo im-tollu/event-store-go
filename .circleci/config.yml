@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13
       - image: circleci/postgres
-          environment: # environment variables for primary container
+          environment:
             POSTGRES_USER: estore
             POSTGRES_DB: estore
 
@@ -40,6 +40,7 @@ jobs:
           working_directory: ./src
           environment:
             ESTORE_DB_URL: "postgres://estore@localhost:5432/estore?sslmode=disable"
+            
           # store the results of our tests in the $TEST_RESULTS directory
           command: |
             PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
