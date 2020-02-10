@@ -3,6 +3,10 @@ jobs:
   build:
     docker:
       - image: circleci/golang:1.13
+      - image: circleci/postgres
+          environment: # environment variables for primary container
+            POSTGRES_USER: estore
+            POSTGRES_DB: estore
 
     environment:
       TEST_RESULTS: /tmp/test-results
@@ -11,16 +15,31 @@ jobs:
       # get source code from Git
       - checkout
 
-      # prepare directory to store test reports
+      # prepare a directory to store test reports
       - run: mkdir -p $TEST_RESULTS
 
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "src/go.sum" }}
 
+      #  CircleCi's Go Docker image includes netcat
+      #  This allows polling the DB port to confirm it is open before proceeding
+      - run:
+          name: Waiting for Postgres to be ready
+          command: |
+            for i in `seq 1 10`;
+            do
+              nc -z localhost 5432 && echo Success && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Postgres && exit 1
+
       - run:
           name: Run unit tests
           working_directory: ./src
+          environment:
+            ESTORE_DB_URL: "postgres://estore@localhost:5432/estore?sslmode=disable"
           # store the results of our tests in the $TEST_RESULTS directory
           command: |
             PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
