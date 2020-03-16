@@ -11,16 +11,21 @@ import (
 
 func main() {
 	var (
-		dbUrl string
-		clean bool
+		dbUrl      string
+		migrations string
+		clean      bool
 	)
 	flag.StringVar(&dbUrl, "db", "", "URL-encoded database connection string (required)")
+	flag.StringVar(&migrations, "migrations", "migrations", "path to migration scripts (required)")
 	flag.BoolVar(&clean, "clean", false, "Drop the database and recreate from scratch")
 	flag.Parse()
 	if dbUrl == "" {
 		log.Fatal("Parameter 'db' is required!")
 	}
-	m := getMigration(dbUrl)
+	if migrations == "" {
+		log.Fatal("Parameter 'migrations' is required!")
+	}
+	m := getMigration(dbUrl, migrations)
 	defer closeMigrate(m)
 	if clean {
 		cleanDb(m)
@@ -57,8 +62,8 @@ func (l logger) Verbose() bool {
 	return false
 }
 
-func getMigration(dbUrl string) *migrate.Migrate {
-	m, readMigrationErr := migrate.New("file://migrations", dbUrl)
+func getMigration(dbUrl string, migrations string) *migrate.Migrate {
+	m, readMigrationErr := migrate.New("file://"+migrations, dbUrl)
 	if readMigrationErr != nil {
 		log.Fatalf("could not instantiate migration: %v", readMigrationErr)
 	}
