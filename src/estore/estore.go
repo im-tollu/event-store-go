@@ -3,21 +3,27 @@ package estore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 )
 
-type Repo struct {
-	db *sql.DB
-}
+type (
+	Repo struct {
+		db *sql.DB
+	}
+	StreamDef struct {
+		Key string
+	}
+	Stream struct {
+		Key     string
+		Version uint
+	}
+	StreamAlreadyExistsErr struct {
+		Key string
+	}
+)
 
-type StreamDef struct {
-	Key string
-}
-
-type Stream struct {
-	Key     string
-	Version uint
-}
+const uniqueViolation = pq.ErrorCode("23505")
 
 func NewRepo(url string) *Repo {
 	db, connErr := sql.Open("postgres", url)
@@ -40,13 +46,24 @@ func (r *Repo) CreateStream(def StreamDef) (Stream, error) {
 	row := tx.QueryRow("insert into STREAMS (KEY, VERSION) values ($1, 1) returning VERSION", def.Key)
 	insertErr := row.Scan(&stream.Version)
 	if insertErr != nil {
-		return stream, fmt.Errorf("cannot insert stream %v into DB: %w", def, insertErr)
+		return stream, handleInsertStreamErr(def, insertErr)
 	}
 	commitErr := tx.Commit()
 	if commitErr != nil {
 		return stream, fmt.Errorf("cannot commit transaction after inserting stream %v into DB: %w", def, commitErr)
 	}
 	return stream, nil
+}
+
+func handleInsertStreamErr(def StreamDef, err error) error {
+	if postgresErr, ok := err.(*pq.Error); ok && postgresErr.Code == uniqueViolation {
+		return StreamAlreadyExistsErr{Key: def.Key}
+	}
+	return fmt.Errorf("cannot insert stream %v into DB: %w", def, err)
+}
+
+func (e StreamAlreadyExistsErr) Error() string {
+	return fmt.Sprintf("stream already exists: %s", e.Key)
 }
 
 func (r *Repo) RetrieveStream(key string) (Stream, error) {

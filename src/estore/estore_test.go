@@ -42,6 +42,14 @@ func TestCreateStream(t *testing.T) {
 	if newStream.Version != 1 {
 		t.Errorf("expected that created stream has version [1], but got [%d]", newStream.Version)
 	}
+	_, createExistingErr := repo.CreateStream(def)
+	alreadyExistsErr, ok := createExistingErr.(StreamAlreadyExistsErr)
+	if !ok {
+		t.Fatalf("expected StreamAlreadyExistsError, but got %v", createExistingErr)
+	}
+	if alreadyExistsErr.Key != def.Key {
+		t.Errorf("expected Key to be [%s], but got [%s]", def.Key, alreadyExistsErr.Key)
+	}
 	stream, retrieveErr := repo.RetrieveStream(streamKey)
 	if retrieveErr != nil {
 		t.Fatalf("cannot retrieve stream because of error: %v", retrieveErr)
