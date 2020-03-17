@@ -8,15 +8,9 @@ jobs:
           POSTGRES_USER: estore
           POSTGRES_DB: estore
 
-    environment:
-      TEST_RESULTS: /tmp/test-results
-
     steps:
       # get source code from Git
       - checkout
-
-      # prepare a directory to store test reports
-      - run: mkdir -p $TEST_RESULTS
 
       - restore_cache:
           keys:
@@ -37,14 +31,11 @@ jobs:
 
       - run:
           name: Run unit tests
-          working_directory: ./src
           environment:
             ESTORE_DB_URL: "postgres://estore@localhost:5432/estore?sslmode=disable"
 
-          # store the results of our tests in the $TEST_RESULTS directory
           command: |
-            PACKAGE_NAMES=$(go list ./... | circleci tests split --split-by=timings --timings-type=classname)
-            gotestsum --junitfile ${TEST_RESULTS}/gotestsum-report.xml -- $PACKAGE_NAMES
+            make dbclean test
 
       - save_cache:
           key: go-mod-v4-{{ checksum "src/go.sum" }}
@@ -53,12 +44,12 @@ jobs:
 
       # upload test summary for display in Artifacts
       - store_artifacts:
-          path: $TEST_RESULTS
+          path: out/test-reports
           destination: raw-test-output
 
       # upload test results for display in Test Summary
       - store_test_results:
-          path: $TEST_RESULTS
+          path: out/test-reports
 
 workflows:
   version: 2
