@@ -3,10 +3,11 @@ define enforce-db-url
 endef
 
 .PHONY: test
-test: out/gotestsum out/test-reports
+test: out/gotestsum
 	@echo "\n>>> Running tests..."
+	mkdir -p out/test-reports
 	$(call enforce-db-url)
-	set -euo pipefail && \
+	set -eu pipefail && \
 	cd src && \
 	go test ./... | ../out/gotestsum --junitfile ../out/test-reports/unit-tests.xml
 
@@ -24,28 +25,23 @@ clean:
 migrate: out/migrate out/migrations/*.sql
 	@echo "\n>>> Preparing database migration..."
 
-out/migrate: out
+out/.f:
+	@echo "\n>>> Preparing output directory..."
+	mkdir out
+	touch out/.f
+
+out/migrate: out/.f
 	@echo "\n>>> Building migration tool..."
 	cd src && \
 	go build -o ../out/migrate cmd/migrate/main.go
 
-out/migrations/*.sql: out/migrations
+out/migrations/*.sql:
 	@echo "\n>>> Copying migration scripts..."
-	cp src/migrations/*.sql out/migrations
+	mkdir -p out/migrations
+	cp src/migrations/*.sql out/migrations/
 
-out/migrations: out
-	@echo "\n>>> Preparing directory for migration scripts..."
-	mkdir out/migrations
-
-out:
-	@echo "\n>>> Preparing output directory..."
-	mkdir out
-
-out/gotestsum: out
+out/gotestsum: out/.f
 	@echo "\n>>> Building gotestsum..."
 	cd src && \
 	go build -o ../out/gotestsum gotest.tools/gotestsum
 
-out/test-reports: out
-	@echo "\n>>> Preparing test-reports directory..."
-	mkdir out/test-reports
