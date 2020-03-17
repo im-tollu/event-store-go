@@ -1,12 +1,13 @@
 package estore
 
 import (
-	"flag"
 	"github.com/google/uuid"
 	"log"
 	"os"
 	"testing"
 )
+
+const envVar = "ESTORE_DB_URL"
 
 var repo *Repo
 
@@ -17,11 +18,9 @@ func TestMain(m *testing.M) {
 }
 
 func setupRepo() {
-	var dbUrl string
-	flag.StringVar(&dbUrl, "db", "", "URL-encoded database connection string (required)")
-	flag.Parse()
+	dbUrl := os.Getenv(envVar)
 	if dbUrl == "" {
-		log.Fatal("Parameter 'db' is required!")
+		log.Fatal("Provide database connection string in environment variable " + envVar)
 	}
 	log.Printf("Running tests with database [%s]", dbUrl)
 	repo = NewRepo(dbUrl)
@@ -36,6 +35,7 @@ func TestCreateStream(t *testing.T) {
 	if createErr != nil {
 		t.Fatalf("cannot create stream because of error: %v", createErr)
 	}
+	//t.Error("Test failed")
 	if newStream.Key != def.Key {
 		t.Errorf("expected that created stream has Key [%s], but got [%s]", def.Key, newStream.Key)
 	}
