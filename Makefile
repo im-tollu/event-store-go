@@ -19,6 +19,7 @@ dbclean: migrate
 
 .PHONY: clean
 clean:
+	@echo "\n>>> Cleaning build artifacts..."
 	rm -r out
 
 .PHONY: migrate
