@@ -6,6 +6,7 @@ jobs:
       - image: circleci/postgres
         environment:
           POSTGRES_USER: estore
+          POSTGRES_PASSWORD: pa$$w0rd
           POSTGRES_DB: estore
 
     steps:
@@ -32,7 +33,7 @@ jobs:
       - run:
           name: Run unit tests
           environment:
-            ESTORE_DB_URL: "postgres://estore@localhost:5432/estore?sslmode=disable"
+            ESTORE_DB_URL: "postgres://estore:pa$$w0rd@localhost:5432/estore?sslmode=disable"
 
           command: |
             make dbclean test
