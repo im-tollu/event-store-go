@@ -65,14 +65,21 @@ func handleInsertStreamErr(def StreamDef, err error) error {
 	return fmt.Errorf("cannot insert stream %v into DB: %w", def, err)
 }
 
-func (r *Repo) RetrieveStream(key string) (Stream, error) {
+func (r *Repo) RetrieveStream(streamKey string) (Stream, error) {
 	stream := Stream{}
-	row := r.db.QueryRow("select s.key, s.version from STREAMS s where KEY = $1", key)
+	row := r.db.QueryRow("select s.key, s.version from STREAMS s where KEY = $1", streamKey)
 	selectErr := row.Scan(&stream.Key, &stream.Version)
 	if selectErr != nil {
-		return stream, fmt.Errorf("cannot retrieve stream [%v] from DB: %w", key, selectErr)
+		return stream, handleRetrieveStreamErr(streamKey, selectErr)
 	}
 	return stream, nil
+}
+
+func handleRetrieveStreamErr(streamKey string, err error) error {
+	if err == sql.ErrNoRows {
+		return StreamNotFoundErr{Key: streamKey}
+	}
+	return fmt.Errorf("cannot retrieve stream [%s] from DB: %w", streamKey, err)
 }
 
 func (e StreamAlreadyExistsErr) Error() string {
