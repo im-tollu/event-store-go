@@ -16,7 +16,7 @@ func main() {
 		clean      bool
 	)
 	flag.StringVar(&dbUrl, "db", "", "URL-encoded database connection string (required)")
-	flag.StringVar(&migrations, "migrations", "migrations", "path to migration scripts (required)")
+	flag.StringVar(&migrations, "migrations", "", "path to migration scripts (required)")
 	flag.BoolVar(&clean, "clean", false, "Drop the database and recreate from scratch")
 	flag.Parse()
 	if dbUrl == "" {
