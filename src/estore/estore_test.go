@@ -26,6 +26,19 @@ func setupRepo() {
 	repo = NewRepo(dbUrl)
 }
 
+func TestRetrieveStreamNotFound(t *testing.T) {
+	streamKey := "non-existing-stream"
+	_, retrieveErr := repo.RetrieveStream(streamKey)
+	notFound, ok := retrieveErr.(StreamNotFoundErr)
+	if !ok {
+		t.Fatalf("expected StreamNotFoundErr but got %v", retrieveErr)
+	}
+	if notFound.Key != streamKey {
+		t.Fatalf("expected key to be [%s] but got [%s]", streamKey, notFound.Key)
+	}
+
+}
+
 func TestCreateStream(t *testing.T) {
 	streamKey := uuid.New().String()
 	def := StreamDef{
@@ -35,7 +48,6 @@ func TestCreateStream(t *testing.T) {
 	if createErr != nil {
 		t.Fatalf("cannot create stream because of error: %v", createErr)
 	}
-	//t.Error("Test failed")
 	if newStream.Key != def.Key {
 		t.Errorf("expected that created stream has Key [%s], but got [%s]", def.Key, newStream.Key)
 	}

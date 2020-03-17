@@ -21,6 +21,9 @@ type (
 	StreamAlreadyExistsErr struct {
 		Key string
 	}
+	StreamNotFoundErr struct {
+		Key string
+	}
 )
 
 const uniqueViolation = pq.ErrorCode("23505")
@@ -62,10 +65,6 @@ func handleInsertStreamErr(def StreamDef, err error) error {
 	return fmt.Errorf("cannot insert stream %v into DB: %w", def, err)
 }
 
-func (e StreamAlreadyExistsErr) Error() string {
-	return fmt.Sprintf("stream already exists: %s", e.Key)
-}
-
 func (r *Repo) RetrieveStream(key string) (Stream, error) {
 	stream := Stream{}
 	row := r.db.QueryRow("select s.key, s.version from STREAMS s where KEY = $1", key)
@@ -74,4 +73,12 @@ func (r *Repo) RetrieveStream(key string) (Stream, error) {
 		return stream, fmt.Errorf("cannot retrieve stream [%v] from DB: %w", key, selectErr)
 	}
 	return stream, nil
+}
+
+func (e StreamAlreadyExistsErr) Error() string {
+	return fmt.Sprintf("stream already exists: [%s]", e.Key)
+}
+
+func (e StreamNotFoundErr) Error() string {
+	return fmt.Sprintf("stream not found: [%s]", e.Key)
 }
